@@ -1081,50 +1081,77 @@ const reply = (text) => {
     m.reply(response);
 }
 
-    //fitur rekap
-    if (body.indexOf(".rekap") === 0) {
+    // Fitur rekap dengan tampilan modern
+if (body.indexOf(".rekap") === 0) {
     const userNumber = m.sender.split("@")[0]; // Ambil nomor pengguna
     const dbPath = "./database/orders.json";
 
-    // Cek apakah file database ada
-    if (!fs.existsSync(dbPath)) return m.reply("📌 *Belum ada data pesanan yang kamu input.*");
+    if (!fs.existsSync(dbPath)) return m.reply("📌 *Belum ada data pesanan yang tersedia.*");
 
-    // Membaca database utama
     let ordersDB;
     try {
-        // Coba untuk membaca dan mengurai file JSON
         ordersDB = JSON.parse(fs.readFileSync(dbPath, "utf8"));
     } catch (e) {
-        // Jika terjadi error saat parsing (misal file rusak), buat file baru
         ordersDB = { users: {} };
     }
 
-    // Pastikan data user ada
-    if (!ordersDB.users[userNumber] || ordersDB.users[userNumber].length === 0) {
-        return m.reply("📌 *Belum ada data pesanan yang kamu input.*");
-    }
-
     let formatRupiah = (angka) => `Rp${angka.toLocaleString("id-ID")}`;
-    let response = `📜 *Rekap Pesanan Anda:*\n\n`;
+    let response = `📜 *Rekap Pesanan:*\n\n`;
 
-    // Loop untuk menampilkan data pesanan berdasarkan urutan nomor yang benar
-    ordersDB.users[userNumber].forEach((order) => {
-        response += `🔢 *No*: ${order.no}\n`;
-        response += `📦 *Produk*: ${order.produk}\n`;
-        response += `👤 *Penerima*: ${order.penerima}\n`;
-        response += `📄 *NoPesanan*: ${order.noPesanan}\n`;
-        response += `📦 *NoResi*: ${order.noResi}\n`;
-        response += `🔢 *Qty*: ${order.qty}\n`;
-        response += `💰 *Harga*: ${formatRupiah(order.harga)}\n`;
-        response += `📅 *Tanggal CheckOut*: ${order.tanggal}\n`;
-        response += `📞 *WA*: ${order.wa}\n`;
-        response += `📌 *Status*: ${order.status}\n`;
-        response += `---------------------------\n`;
-    });
+    if (isCreator) {
+        let totalData = 0;
+
+        for (const userKey in ordersDB.users) {
+            const userOrders = ordersDB.users[userKey];
+            if (userOrders.length === 0) continue;
+
+            response += `╭━━━〔 👤 *User*: wa.me/${userKey} 〕━━━\n`;
+
+            userOrders.forEach((order, index) => {
+                response += `┃ 🔢 *No*: _${index + 1}_\n`;
+                response += `┃ 📦 *Produk*: _${order.produk}_\n`;
+                response += `┃ 👤 *Penerima*: _${order.penerima}_\n`;
+                response += `┃ 📄 *No Pesanan*: _${order.noPesanan}_\n`;
+                response += `┃ 📦 *No Resi*: _${order.noResi}_\n`;
+                response += `┃ 🔢 *Qty*: _${order.qty}_\n`;
+                response += `┃ 💰 *Harga*: _${formatRupiah(order.harga)}_\n`;
+                response += `┃ 📅 *Checkout*: _${order.tanggal}_\n`;
+                response += `┃ 📞 *WA*: _${order.wa}_\n`;
+                response += `┃ 📌 *Status*: _${order.status}_\n`;
+                response += `╰━━━━━━━━━━━━━━━━━━━\n\n`;
+            });
+
+            totalData += userOrders.length;
+        }
+
+        if (totalData === 0) {
+            return m.reply("📌 *Tidak ada data pesanan yang tersedia.*");
+        }
+
+    } else {
+        if (!ordersDB.users[userNumber] || ordersDB.users[userNumber].length === 0) {
+            return m.reply("📌 *Belum ada data pesanan yang kamu input.*");
+        }
+
+        response += `╭━━━〔 📦 *Pesanan Anda* 〕━━━\n`;
+
+        ordersDB.users[userNumber].forEach((order, index) => {
+            response += `┃ 🔢 *No*: _${index + 1}_\n`;
+            response += `┃ 📦 *Produk*: _${order.produk}_\n`;
+            response += `┃ 👤 *Penerima*: _${order.penerima}_\n`;
+            response += `┃ 📄 *No Pesanan*: _${order.noPesanan}_\n`;
+            response += `┃ 📦 *No Resi*: _${order.noResi}_\n`;
+            response += `┃ 🔢 *Qty*: _${order.qty}_\n`;
+            response += `┃ 💰 *Harga*: _${formatRupiah(order.harga)}_\n`;
+            response += `┃ 📅 *Checkout*: _${order.tanggal}_\n`;
+            response += `┃ 📞 *WA*: _${order.wa}_\n`;
+            response += `┃ 📌 *Status*: _${order.status}_\n`;
+            response += `╰━━━━━━━━━━━━━━━━━━━\n\n`;
+        });
+    }
 
     m.reply(response.trim());
 }
-    
     //resetsaldo
     if (body.indexOf(".resetsaldo") === 0) {
     if (!isCreator) return m.reply("❌ *Kamu tidak memiliki izin untuk menggunakan perintah ini!*");
